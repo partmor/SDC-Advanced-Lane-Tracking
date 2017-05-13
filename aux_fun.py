@@ -192,6 +192,16 @@ def calculate_radius_in_meters(y_eval, fit_coeffs, x_meters_per_px=3.7/700, y_me
     r = 1/beta*((1 + alpha*(2*a*y_eval + b)**2)**1.5) / np.absolute(2*a)
     return r
 
+def calculate_offset_in_meters(img, left_fit_coeffs, right_fit_coeffs, x_meters_per_px=3.7/700):
+    y_eval = img.shape[0]
+    left_lane_bottom_x = left_fit_coeffs[0]*y_eval**2 + left_fit_coeffs[1]*y_eval + left_fit_coeffs[2]
+    right_lane_bottom_x = right_fit_coeffs[0]*y_eval**2 + right_fit_coeffs[1]*y_eval + right_fit_coeffs[2]
+    lane_midpoint_x = np.mean([left_lane_bottom_x, right_lane_bottom_x])
+    img_bottom_midpoint_x = img.shape[1] / 2
+    offset_px = img_bottom_midpoint_x - lane_midpoint_x
+    offset_m = x_meters_per_px * offset_px
+    return offset_m
+
 ###########
 #  OUTPUT #
 ###########
@@ -199,7 +209,7 @@ def calculate_radius_in_meters(y_eval, fit_coeffs, x_meters_per_px=3.7/700, y_me
 def print_summary_on_original_image(undist_original_img, binary_warped,
                                     left_fitx_coords, right_fitx_coords, y_line_values,
                                     leftx_coords, lefty_coords, rightx_coords, righty_coords,
-                                    left_radius, right_radius,
+                                    left_radius, right_radius, offset,
                                     src, dst
                                    ):
     # Create an image to draw the lines on
@@ -228,9 +238,13 @@ def print_summary_on_original_image(undist_original_img, binary_warped,
     
     
     # Combine the result with the original image
-    str_radius_info = 'Radius of Curvature = %0.1f m' % (np.mean([left_radius, right_radius]))
     result = cv2.addWeighted(undist_original_img, 1, newwarp, 0.3, 0)
-    cv2.putText(result, str_radius_info, (50,70), cv2.FONT_HERSHEY_SIMPLEX, 2, (255,255,255), 2, cv2.LINE_AA)
+
+    str_radius_info = 'Radius of Curvature = %0.1f m' % (np.mean([left_radius, right_radius]))
+    str_offset_info = 'Vehicle is %0.2f m %s from the center' % (np.abs(offset), 'LEFT' if offset < 0 else 'RIGHT')
+    cv2.putText(result, str_radius_info, (70,70), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,255,255), 2, cv2.LINE_AA)
+    cv2.putText(result, str_offset_info, (70,140), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,255,255), 2, cv2.LINE_AA)
+
     result[l_lane_pixels_binary.nonzero()] = [255, 0, 0]
     result[r_lane_pixels_binary.nonzero()] = [0, 0, 255]
     return result
