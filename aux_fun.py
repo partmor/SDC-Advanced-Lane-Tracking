@@ -60,6 +60,16 @@ def color_channel_thresh(channel, thresh=(0, 255)):
     binary_res[(channel >= thresh[0]) & (channel <= thresh[1])] = 1
     return binary_res
 
+def thresholding_pipeline(img_bgr):
+    hls = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HLS)
+    h_ch, l_ch, s_ch = hls[:,:,0], hls[:,:,1], hls[:,:,2] 
+    
+    s_sobelx_bin = abs_sobel_thresh(s_ch, orient='x', sobel_kernel=3, thresh=(20, 100))
+    s_bin = color_channel_thresh(s_ch, thresh=(180, 240))
+    
+    bin_res = s_bin | s_sobelx_bin
+    return bin_res
+
 ##########################
 #  PERSPECTIVE TRANSFORM #
 ##########################
@@ -248,6 +258,28 @@ def print_summary_on_original_image(undist_original_img, binary_warped,
     result[l_lane_pixels_binary.nonzero()] = [255, 0, 0]
     result[r_lane_pixels_binary.nonzero()] = [0, 0, 255]
     return result
+
+def pipeline(original_img_bgr, camera_params, src_vertices, dst_vertices):
+    undist_img = undistort(original_img_bgr, camera_params)
+    binary_img = thresholding_pipeline(undist_img)
+    binary_warped = warp_image(binary_img, src_vertices, dst_vertices)
+    leftx, lefty, rightx, righty, _ = find_lanes_sliding_window_hist(binary_warped, get_viz=False)
+    left_fit, right_fit = get_lane_fit_coeffs(leftx, lefty, rightx, righty)
+    ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
+    left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
+    right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
+    y_eval = np.max(ploty)
+    r_left = calculate_radius_in_meters(y_eval, left_fit, 3.7/700, 30/720)
+    r_right = calculate_radius_in_meters(y_eval, right_fit, 3.7/700, 30/720)
+    offset = calculate_offset_in_meters(binary_warped, left_fit, right_fit, 3.7/700)
+    res = print_summary_on_original_image(
+        undist_img, binary_warped,
+        left_fitx, right_fitx, ploty,
+        leftx, lefty, rightx, righty,
+        r_left, r_right, offset,
+        src_vertices, dst_vertices
+    )
+    return res
 
 ############
 #  HELPERS #
