@@ -59,16 +59,7 @@ def color_channel_thresh(channel, thresh=(0, 255)):
     binary_res = np.zeros_like(channel)
     binary_res[(channel >= thresh[0]) & (channel <= thresh[1])] = 1
     return binary_res
-
-def thresholding_pipeline(img_bgr):
-    hls = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HLS)
-    h_ch, l_ch, s_ch = hls[:,:,0], hls[:,:,1], hls[:,:,2] 
     
-    s_sobelx_bin = abs_sobel_thresh(s_ch, orient='x', sobel_kernel=3, thresh=(20, 100))
-    s_bin = color_channel_thresh(s_ch, thresh=(180, 240))
-    
-    bin_res = s_bin | s_sobelx_bin
-    return bin_res
 
 ##########################
 #  PERSPECTIVE TRANSFORM #
@@ -87,7 +78,7 @@ def warp_image(img, src, dst):
 #  LANE DETECTION #
 ###################
 
-def find_lanes_sliding_window_hist(binary_warped_inp, get_viz=False):
+def find_lanes_sliding_window_hist(binary_warped_inp, nwindows=9, margin=100, minpix=50, get_viz=False):
     binary_warped = np.copy(binary_warped_inp)
     # Take a histogram of the bottom half of the image
     histogram = np.sum(binary_warped[int(binary_warped.shape[0]/2):,:], axis=0)
@@ -99,8 +90,6 @@ def find_lanes_sliding_window_hist(binary_warped_inp, get_viz=False):
     leftx_base = np.argmax(histogram[:midpoint])
     rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
-    # Choose the number of sliding windows
-    nwindows = 9
     # Set height of windows
     window_height = np.int(binary_warped.shape[0]/nwindows)
     # Identify the x and y positions of all nonzero pixels in the image
@@ -110,10 +99,6 @@ def find_lanes_sliding_window_hist(binary_warped_inp, get_viz=False):
     # Current positions to be updated for each window
     leftx_current = leftx_base
     rightx_current = rightx_base
-    # Set the width of the windows +/- margin
-    margin = 100
-    # Set minimum number of pixels found to recenter window
-    minpix = 50
     # Create empty lists to receive left and right lane pixel indices
     left_lane_inds = []
     right_lane_inds = []
@@ -164,7 +149,6 @@ def find_lanes_near_previous(binary_warped_inp, l_fit_coeffs_prev, r_fit_coeffs_
     nonzero = binary_warped.nonzero()
     nonzeroy = np.array(nonzero[0])
     nonzerox = np.array(nonzero[1])
-    margin = 100
     left_lane_inds = ((nonzerox > (l_fit_coeffs_prev[0]*(nonzeroy**2) + l_fit_coeffs_prev[1]*nonzeroy + l_fit_coeffs_prev[2] - margin)) & (nonzerox < (l_fit_coeffs_prev[0]*(nonzeroy**2) + l_fit_coeffs_prev[1]*nonzeroy + l_fit_coeffs_prev[2] + margin))) 
     right_lane_inds = ((nonzerox > (r_fit_coeffs_prev[0]*(nonzeroy**2) + r_fit_coeffs_prev[1]*nonzeroy + r_fit_coeffs_prev[2] - margin)) & (nonzerox < (r_fit_coeffs_prev[0]*(nonzeroy**2) + r_fit_coeffs_prev[1]*nonzeroy + r_fit_coeffs_prev[2] + margin)))  
 
@@ -259,9 +243,9 @@ def print_summary_on_original_image(undist_original_img, binary_warped,
     result[r_lane_pixels_binary.nonzero()] = [0, 0, 255]
     return result
 
-def pipeline(original_img_bgr, camera_params, src_vertices, dst_vertices):
+def pipeline(thr_pipeline, original_img_bgr, camera_params, src_vertices, dst_vertices):
     undist_img = undistort(original_img_bgr, camera_params)
-    binary_img = thresholding_pipeline(undist_img)
+    binary_img = thr_pipeline(undist_img)
     binary_warped = warp_image(binary_img, src_vertices, dst_vertices)
     leftx, lefty, rightx, righty, _ = find_lanes_sliding_window_hist(binary_warped, get_viz=False)
     left_fit, right_fit = get_lane_fit_coeffs(leftx, lefty, rightx, righty)
