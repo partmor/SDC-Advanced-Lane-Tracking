@@ -139,8 +139,8 @@ def find_lanes_sliding_window_hist(binary_warped_inp, nwindows=9, margin=100, mi
     righty = nonzeroy[right_lane_inds] 
     
     if get_viz:
-        out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
-        out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
+        out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [0, 0, 255]
+        out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [255, 0, 0]
     
     return leftx, lefty, rightx, righty, out_img
 
@@ -164,8 +164,8 @@ def find_lanes_near_previous(binary_warped_inp, l_fit_coeffs_prev, r_fit_coeffs_
         out_img = np.dstack((binary_warped,)*3)*255
         window_img = np.zeros_like(out_img)
         # Color in left and right line pixels
-        out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
-        out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
+        out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [0, 0, 255]
+        out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [255, 0, 0]
     
     return leftx, lefty, rightx, righty, out_img
 
@@ -239,37 +239,16 @@ def print_summary_on_original_image(undist_original_img, binary_warped,
     cv2.putText(result, str_radius_info, (70,70), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,255,255), 2, cv2.LINE_AA)
     cv2.putText(result, str_offset_info, (70,140), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,255,255), 2, cv2.LINE_AA)
 
-    result[l_lane_pixels_binary.nonzero()] = [255, 0, 0]
-    result[r_lane_pixels_binary.nonzero()] = [0, 0, 255]
+    result[l_lane_pixels_binary.nonzero()] = [0, 0, 255]
+    result[r_lane_pixels_binary.nonzero()] = [255, 0, 0]
     return result
 
-def pipeline(thr_pipeline, original_img_bgr, camera_params, src_vertices, dst_vertices):
-    undist_img = undistort(original_img_bgr, camera_params)
-    binary_img = thr_pipeline(undist_img)
-    binary_warped = warp_image(binary_img, src_vertices, dst_vertices)
-    leftx, lefty, rightx, righty, _ = find_lanes_sliding_window_hist(binary_warped, get_viz=False)
-    left_fit, right_fit = get_lane_fit_coeffs(leftx, lefty, rightx, righty)
-    ploty = np.linspace(0, binary_warped.shape[0]-1, binary_warped.shape[0] )
-    left_fitx = left_fit[0]*ploty**2 + left_fit[1]*ploty + left_fit[2]
-    right_fitx = right_fit[0]*ploty**2 + right_fit[1]*ploty + right_fit[2]
-    y_eval = np.max(ploty)
-    r_left = calculate_radius_in_meters(y_eval, left_fit, 3.7/700, 30/720)
-    r_right = calculate_radius_in_meters(y_eval, right_fit, 3.7/700, 30/720)
-    offset = calculate_offset_in_meters(binary_warped, left_fit, right_fit, 3.7/700)
-    res = print_summary_on_original_image(
-        undist_img, binary_warped,
-        left_fitx, right_fitx, ploty,
-        leftx, lefty, rightx, righty,
-        r_left, r_right, offset,
-        src_vertices, dst_vertices
-    )
-    return res
 
 ############
 #  HELPERS #
 ############
 
-def draw_polygon_on_image_inplace(img, vertices, color=[0, 0, 255], thickness=5):
+def draw_polygon_on_image_inplace(img, vertices, color=[255, 0, 0], thickness=5):
     for i in range(vertices.shape[0] - 1):
         cv2.line(
             img, 
