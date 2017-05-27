@@ -24,6 +24,7 @@ The goal of this project is to build a software pipeline to identify the lane bo
 Calibrating for distortion is performed by taking pictures of known shapes: for instance a **chessboard**. With multiple pictures of a chessboard on a flat surface, it is possible to establish the transformation that maps the position of the corners in the distorted images and their theoretical known values. The parameters of this transformation are the **camera's distortion parameters**.
 
 *[Cells 2 - 7 of the project notebook]*
+
 The chessboard used here has 6 x 9 internal corners. The object points - theoretical real (x,y,z) coordinates in the world - are defined assuming the chessboard is fixed on the (x,y) plane with z = 0:
 ```python
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
@@ -53,6 +54,7 @@ This image was chosen since it is a fairly complicated example, due to the irreg
 ### Distortion correction
 
 *[Cells 8 - 11 of the project notebook]*
+
 The distortion correction step has been encapsulated in `aux_fun.undistort()`. This method applied to the test frame outputs:
 
 ![frame_undistort]
@@ -60,6 +62,7 @@ The distortion correction step has been encapsulated in `aux_fun.undistort()`. T
 ### Thresholding
 
 *[Cells 12 - 22 of the project notebook]*
+
 The objective is to find colorspaces that are robust *picking* white and yellow lines under changing lighting conditions and tarmac integrity.
 
 The **Lab** colorspace behaved very well in this mission:
@@ -93,6 +96,7 @@ In particular, the roles of L and b in the described pipeline could be exchanged
 ### Perspective transform
 
 *[Cells 23 - 30 of the project notebook]*
+
 A perspective transformation of the image requires a prior definition of the so-called *source* and *destination* points, in order to compute the transformation matrix.
 
 For this project, the source and destination points were hardcoded, using an image with a theoretically straight lane to perform the manual *calibration* of the vertices.
@@ -138,6 +142,7 @@ The *birds-eye* transformation is encapsulated in `aux_fun.warp_image()`.
 ### Lane detection
 
 *[Cells 31 - 37 of the project notebook]*
+
 The next step in the pipeline is to identify explicitly the pixels in the warped binary mask as belonging to the left or right lane.
 
 The lanes are scanned using a vertical-sliding window. Consider a static window of the image that covers a vertical section of the image and spans along the whole horizontal axis. In this window, a histogram of the binary image along the horizontal direction will present peaks in aeras with a high density of highlighted pixels. It is reasonable to affirm that the 2 largest peaks are due to the lanes.
