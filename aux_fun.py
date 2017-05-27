@@ -259,7 +259,7 @@ def draw_polygon_on_image_inplace(img, vertices, color=[255, 0, 0], thickness=5)
         )   
 
 def plot_3_channels(img, ch_names=('Ch. 1', 'Ch. 2', 'Ch. 3')):
-    f, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(12,10))
+    f, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(12,4))
     ax1.imshow(
         img[:,:,0],
         cmap='gray'
