@@ -145,14 +145,34 @@ The *birds-eye* transformation is encapsulated in `aux_fun.warp_image()`.
 
 The next step in the pipeline is to identify explicitly the pixels in the warped binary mask as belonging to the left or right lane.
 
-The lanes are scanned using a vertical-sliding window. Consider a static window of the image that covers a vertical section of the image and spans along the whole horizontal axis. In this window, a histogram of the binary image along the horizontal direction will present peaks in aeras with a high density of highlighted pixels. It is reasonable to affirm that the 2 largest peaks are due to the lanes.
+The lanes are scanned using a **vertical-sliding window**. Consider a static window of the image that covers a vertical section of the image and spans along the whole horizontal axis. In this window, a histogram of the binary image along the horizontal direction will present peaks in aeras with a high density of highlighted pixels. It is reasonable to affirm that the 2 largest peaks are due to the lanes.
 
 A bounding box with a given width (the height is equal to the window's) is defined around the peaks, and all the pixels that lie inside it are catalogued as belonging to the left or right lane, depending if the box is located on the left or right half of the image.
 
-This process is repeted for several subsequent and non-overlapping vertical windows, encapsulated in `aux_fun.find_lanes_sliding_window_hist()` and visualized as follows:
+This process is repeted for several subsequent and non-overlapping vertical windows, ending up with a collection of pixels tagged as left/right.
+
+With the coordinates of the pixels in the rectfied image, a second degree polynomial can be fit to each lane.
+
+This methodology is encapsulated in `aux_fun.find_lanes_sliding_window_hist()` and visualized as follows:
 
 ![sliding_window]
 
-Regarding the utility of this step when processing a video stream, once the lanes have been successfully located in previous frames, there is no need to start a new blind search with the sliding window approach. Instead, the lanes for the new incoming frame can be searched within a small range around the previous detections. This approach is encapsulated in `aux_fun.find_lanes_near_previous()` and builds a search area as the following:
+The yellow line in the image above represents the fitted lane line.
+
+Regarding the utility of this step when processing a video stream, once the lanes have been successfully located in previous frames, there is no need to start a new blind search with the sliding window approach. Instead, the lanes for the new incoming frame can be searched within a small range around the previous fitted detections. This approach is encapsulated in `aux_fun.find_lanes_near_previous()` and builds a search area as the following:
 
 ![near_range]
+
+### Curvature and offset calculation
+
+*[Cells 38 - 39 of the project notebook]*
+
+The **radius of curvature** of a line is defined in terms of its first and second derivatives. Hence, the curvature of the fitted lines in the warped image can be immediately calculated since the  expression *x = f(y)* is known for both.
+
+However, this radius is calculated based on pixel values in the warped space. The U.S. regulations for lane dimensions allow to establish an aproximate conversion factor from pixel space to real space: 30/720 [meters/pixel] in the *y* dimension, and 3.7 [meters/pixel] in the *x* dimension.
+
+The method `aux_fun.calculate_radius_in_meters()` implements the form factor correctioni and calculates the radius of curvature in meters, receiving the fitted line coefficients from the pixel space.
+
+The **offset** is defined as the horizontal distance between the lane midpoint and image midpoint, evaluated in the bottom edge of the image.
+
+This calculation follows the same rationale as the curvature when it comes to mapping results from the warped pixel space to the physical space, and has been encapsulated in `aux_fun.calculate_offset_in_meters()`.
