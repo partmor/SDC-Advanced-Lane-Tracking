@@ -184,7 +184,7 @@ This calculation follows the same rationale as the curvature when it comes to ma
 
 The last step of the pipeline is to print all the results back on the undistorted image.
 
-The detected lane pixels and fitted lines on the warped space are transformed back to the physical space using the inverse perspective transform, simply built by calling `cv2.getPerspectiveTransform(dst, src)` rather than `cv2.getPerspectiveTransform(dst, src)`.
+The detected lane pixels and fitted lines on the warped space are transformed back to the physical space using the inverse perspective transform, simply built by calling `cv2.getPerspectiveTransform(dst, src)` rather than `cv2.getPerspectiveTransform(src, dst)`.
 
 The detected lanes now in the real-world space are superimposed on the original undistorted image. The instantaneous radius of curvature and offset are also plotted on the image:
 
