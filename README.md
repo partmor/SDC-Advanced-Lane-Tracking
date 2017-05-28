@@ -216,4 +216,3 @@ The anotated output of `project_video.mp4` is included in this repo, named `proj
 The processing pipeline here defined can still be hugely improved by extending the `Line` class to store more information about previous and current lane line status.
 + Active outlier detection: if a detection turns out to be spurious for a given frame, it would still be plotted with the current pipeline. A solution could be define a window around the average line based on past detections, and discard the new detection if it falls out of this range.
 + Avoid jitter: with a weighted average of the latest *n* detections. This would also solve the problem of missing detections in a certain frame.
-+ Further finetuning of the thresholding filters under more complicated conditions. 
