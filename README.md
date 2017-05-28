@@ -25,7 +25,7 @@ The goal of this project is to build a software pipeline to identify the lane bo
 
 ### Project structure
 
-The project solution is built in the notebook `p4_solution.ipynb`, linked [here](.p4_solution.ipynb). To improve the readability of the project notebook and make it less bulkier, the basic core methods that integrate the pipeline are collected in the `aux_fun.py` script, and are cited as `aux_fun.method_name()` throughout this document. Functions defined in the actual notebook are cited simply as `method_name()`.
+The project solution is built in the notebook `p4_solution.ipynb`, linked [here](p4_solution.ipynb). To improve the readability of the project notebook and make it less bulkier, the basic core methods that integrate the pipeline are collected in the `aux_fun.py` script, and are cited as `aux_fun.method_name()` throughout this document. Functions defined in the actual notebook are cited simply as `method_name()`.
 
 ## Camera calibration
 
